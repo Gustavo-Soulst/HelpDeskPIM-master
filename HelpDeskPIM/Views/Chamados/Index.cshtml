@@ -1,0 +1,218 @@
+﻿@model IEnumerable<Chamado>
+@using System.Security.Claims
+@{
+    ViewData["Title"] = "Dashboard de Chamados";
+    var userName = User.FindFirstValue(ClaimTypes.Name) ?? "Usuário";
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+
+    <link rel="stylesheet" href="~/css/site.css" />
+
+    <style>
+        body {
+            background-color: #f9fafb;
+        }
+
+        header {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #111827;
+        }
+
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            text-align: right;
+            font-size: 14px;
+        }
+
+        .user-name {
+            font-weight: 500;
+            color: #111827;
+        }
+
+        .logout-button {
+            padding: 8px 16px;
+            background-color: #e5e7eb;
+            color: #111827;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-decoration: none;
+        }
+
+            .logout-button:hover {
+                background-color: #d1d5db;
+            }
+
+        main {
+            max-width: 1280px;
+            margin: 32px auto;
+            padding: 0 32px;
+        }
+
+        .new-ticket-button {
+            margin-bottom: 24px;
+        }
+
+        .tickets-section h2 {
+            font-size: 20px;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 16px;
+        }
+
+        .ticket-card {
+            cursor: default;
+        }
+
+        .ticket-footer {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-top: 12px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+
+            .badge.aberto {
+                background-color: #dbeafe;
+                color: #1e40af;
+            }
+
+            .badge.em_progresso {
+                background-color: #fef3c7;
+                color: #92400e;
+            }
+
+            .badge.resolvido {
+                background-color: #dcfce7;
+                color: #166534;
+            }
+
+        /* Caixa de IA */
+        .ia-box {
+            margin-top: 40px;
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 24px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 class="header-title">HelpDesk PIM</h1>
+
+        <div class="header-user">
+            <div class="user-info">
+                <span>Bem-vindo, <span class="user-name">@userName</span></span>
+            </div>
+            <a asp-controller="Account" asp-action="Logout" class="logout-button">Sair</a>
+        </div>
+    </header>
+
+    <main>
+
+        <a asp-controller="Chamados" asp-action="Create" class="btn-primary new-ticket-button">
+            Abrir Novo Chamado
+        </a>
+
+        <section class="tickets-section">
+            <h2>Meus Chamados</h2>
+
+            <div id="ticketsList">
+                @if (Model.Any())
+                {
+                    @foreach (var chamado in Model)
+                    {
+                        <div class="ticket-card">
+                            <div class="ticket-header">
+                                <div class="ticket-title"><h3>@chamado.Titulo</h3></div>
+                                <div class="ticket-date">@chamado.DataAbertura.ToString("dd/MM/yyyy")</div>
+                            </div>
+                            <div class="ticket-description">
+                                <p>@chamado.Descricao</p>
+                            </div>
+                            <div class="ticket-footer">
+                                <span class="badge @chamado.Status.ToLower()">@chamado.Status</span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state" style="text-align: center; padding: 40px; background-color: #fff; border-radius: 8px;">
+                        <p>Nenhum chamado encontrado. Clique em "Abrir Novo Chamado" para começar!</p>
+                    </div>
+                }
+            </div>
+        </section>
+
+        <!-- 🚀 ASSISTENTE IA -->
+        <div class="ia-box">
+            <h3>Assistente IA</h3>
+
+            <input id="pergunta" class="form-control" placeholder="Digite sua pergunta" />
+
+            <button class="btn btn-primary mt-2" onclick="enviarIA()">Perguntar IA</button>
+
+            <div id="respostaIA" class="alert alert-info mt-3" style="display:none"></div>
+        </div>
+
+    </main>
+
+    <script>
+        function enviarIA() {
+            const pergunta = document.getElementById("pergunta").value;
+
+            fetch("/Chamados/PerguntarIA", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: "pergunta=" + encodeURIComponent(pergunta)
+            })
+            .then(r => r.json())
+            .then(data => {
+                const div = document.getElementById("respostaIA");
+                div.style.display = "block";
+                div.innerText = data.resposta;
+            });
+        }
+    </script>
+
+</body>
+</html>

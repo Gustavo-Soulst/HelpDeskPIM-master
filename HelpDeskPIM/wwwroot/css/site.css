@@ -1,0 +1,113 @@
+/* Cole aqui TODO o código CSS do seu design (o que estava no seu style.css) */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.login-container, .register-container {
+    width: 100%;
+    max-width: 420px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.login-header, .register-header {
+    background-color: #fafafa;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 24px;
+    text-align: center;
+    border-radius: 12px 12px 0 0;
+}
+
+    .login-header h1, .register-header h1 {
+        font-size: 24px;
+        font-weight: bold;
+        color: #111827;
+    }
+
+.login-content, .register-content {
+    padding: 24px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+    .form-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+.login-button, .register-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #111827;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 8px;
+}
+
+    .login-button:hover, .register-button:hover {
+        background-color: #374151;
+    }
+
+.login-footer, .register-footer {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+    .login-footer a, .register-footer a {
+        color: #111827;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+.alert {
+    padding: 12px;
+    margin-bottom: 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    border: 1px solid transparent;
+}
+
+.alert-danger {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border-color: #fecaca;
+}
+
+.text-danger {
+    color: #dc2626;
+    font-size: 12px;
+}
+/* Adicione aqui o resto do seu CSS para Dashboard, etc. */
