@@ -17,6 +17,28 @@
             <label asp-for="Descricao" class="control-label"></label>
             <textarea asp-for="Descricao" class="form-control" rows="4"></textarea>
         </div>
+        <h3>Sugerir solução com IA</h3>
+
+        <button type="button" class="btn btn-secondary" onclick="gerarSolucaoIA()">Gerar solução</button>
+
+        <script>
+            function gerarSolucaoIA() {
+                const titulo = document.getElementById("Titulo").value;
+                const descricao = document.getElementById("Descricao").value;
+
+                fetch("/Chamados/SugerirSolucaoIA", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: `titulo=${encodeURIComponent(titulo)}&descricao=${encodeURIComponent(descricao)}`
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.resposta) {
+                        document.getElementById("Descricao").value = data.resposta;
+                    }
+                });
+            }
+        </script>
         <div class="form-group">
             <button type="submit" class="btn-primary">Criar Chamado</button>
             <a asp-action="Index" style="margin-left: 10px;">Cancelar</a>

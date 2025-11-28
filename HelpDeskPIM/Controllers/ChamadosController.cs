@@ -2,9 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using System.Linq;
-using OpenAI.Chat; // IMPORTANTE
+using OpenAI.Chat;
 
 [Authorize]
 public class ChamadosController : Controller
@@ -20,7 +18,10 @@ public class ChamadosController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userIdStr, out int userId))
+            return Unauthorized();
 
         var chamados = await _context.Chamados
             .Where(c => c.UsuarioId == userId)
@@ -28,6 +29,7 @@ public class ChamadosController : Controller
             .ToListAsync();
 
         ViewData["UserName"] = User.FindFirstValue(ClaimTypes.Name);
+
         return View(chamados);
     }
 
@@ -38,33 +40,38 @@ public class ChamadosController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Chamado chamado)
     {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userIdStr, out int userId))
+            return Unauthorized();
+
         if (ModelState.IsValid)
         {
-            chamado.UsuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            chamado.UsuarioId = userId;
             _context.Chamados.Add(chamado);
             await _context.SaveChangesAsync();
             return RedirectToAction("Index");
         }
+
         return View(chamado);
     }
 
-    // 🚀 IA integrada — entende chamados e sugere soluções
+    // IA geral
     [HttpPost]
     public async Task<IActionResult> PerguntarIA(string pergunta)
     {
         if (string.IsNullOrWhiteSpace(pergunta))
-            return Json(new { resposta = "Nenhuma pergunta recebida." });
+            return Json(new { resposta = "Envie uma pergunta válida." });
 
-        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdStr, out int userId))
+            return Unauthorized();
 
-        // Buscar chamados do usuário
         var chamados = await _context.Chamados
             .Where(c => c.UsuarioId == userId)
-            .OrderByDescending(c => c.DataAbertura)
             .ToListAsync();
 
-        // Construir contexto enviado à IA
-        string contexto = "Aqui estão os chamados do usuário:\n\n";
+        string contexto = "Chamados do usuário:\n\n";
 
         foreach (var c in chamados)
         {
@@ -77,12 +84,34 @@ public class ChamadosController : Controller
 
         string promptFinal =
             contexto +
-            "Com base nesses chamados, responda a pergunta a seguir e ofereça soluções técnicas claras e objetivas.\n\n" +
-            "Pergunta: " + pergunta;
+            "Com base nos chamados acima, responda e sugira soluções técnicas:\n\n" +
+            pergunta;
 
-        // 🔥 Chama a IA pelo IAService (OpenAI 2.7.0)
-        var resposta = await _ia.PerguntarAsync(promptFinal);
+        string resposta = await _ia.PerguntarAsync(promptFinal);
+
+        return Json(new { resposta });
+    }
+
+    // IA para sugerir solução na tela de create
+    [HttpPost]
+    public async Task<IActionResult> SugerirSolucaoIA(string titulo, string descricao)
+    {
+        if (string.IsNullOrWhiteSpace(titulo) || string.IsNullOrWhiteSpace(descricao))
+            return Json(new { resposta = "Informe título e descrição." });
+
+        string prompt = $@"
+Você é um técnico de Help Desk Nível 2.
+Com base no chamado abaixo, gere uma solução objetiva e técnica.
+
+Título: {titulo}
+Descrição: {descricao}
+
+Retorne apenas a solução técnica.
+";
+
+        string resposta = await _ia.PerguntarAsync(prompt);
 
         return Json(new { resposta });
     }
 }
+
